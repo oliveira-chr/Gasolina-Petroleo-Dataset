@@ -91,8 +91,8 @@ def plot_first_insight(dt_gas, dt_petro):
     df_gas_d1 = df_gas_d1.reset_index(drop=True)
     df_mask = df_gas_d1['year'] > 2010
     df_gas_d1 = df_gas_d1[df_mask]
-    df_gas_d1.plot()
-    plt.show()
+    # df_gas_d1.plot()
+    # plt.show()
 
     dt_petro['PrecoMedio'] = ((dt_petro['Máxima'] + dt_petro['Mínima']) / 2) / 158.98722
     dfPetro_d1 = dt_petro.drop(['Último', 'Abertura', 'Máxima', 'Mínima', 'Vol.', 'Var%'], axis=1)
@@ -240,14 +240,40 @@ def plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate):
     dt_gas_prepared = prepare_gas_dt_to_inflation_compare(dt_gas)
     inflation_rate_gas_price_dt = prepare_inflation_rate_dt(dt_gas_prepared, dt_inflation_rate)
     graph_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt)
+    return inflation_rate_gas_price_dt
+
+
+def plot_avg_gas_price_region(inflation_rate_gas_price_dt):
+    avg_per_region_for_product_df = inflation_rate_gas_price_dt['2011':].groupby(['PRODUTO', 'REGIÃO', 'DATA']).mean()
+
+    fig, ax = plt.subplots()
+    fig.suptitle('Preço por Região - ' + 'GASOLINA COMUM')
+
+    for key, grp in avg_per_region_for_product_df.groupby('REGIÃO'):
+        grp_as_timeseries = grp.reset_index().set_index('DATA')
+        grp_as_timeseries.plot(y='PREÇO MÉDIO REVENDA', label=key, ax=ax)
+
+        ax.set_xlabel('Data')
+        ax.set_ylabel('Preço - R$/l')
+
+    plt.grid(True)
+    plt.show()
+
+
+def config_visual_plot():
+    plt.rcParams['figure.figsize'] = (11, 7)
+    plt.style.use('seaborn')
 
 
 if __name__ == '__main__':
+    config_visual_plot()
     dt_gas = load_gas_dt()
     dt_petro = load_petroleum_dt()
     dt_inflation_rate = load_inflation_dt()
 
     # Geração de gráficos
     plot_total_gas_stations_searched(dt_gas)
-    plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
+    # TODO: Remover esse retorno e corrigir o dataset de gas para ser usado para as duas situações
+    inflation_rate_gas_price_dt = plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
+    plot_avg_gas_price_region(inflation_rate_gas_price_dt)
     plot_first_insight(dt_gas, dt_petro)
