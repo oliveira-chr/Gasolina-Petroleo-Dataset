@@ -72,7 +72,8 @@ def format_number(data_value, index):
     return formatter
 
 
-def graph_total_gas_stations_searched(dt_gas):
+def plot_total_gas_stations_searched(dt_gas):
+    # TODO: Melhorar visualização do gráfico
     dt_gas_stations = dt_gas[['region', 'gas_stations_searched']].groupby(['region']).sum().sort_values(
         by='gas_stations_searched',
         ascending=False)
@@ -139,10 +140,113 @@ def first_insight(dt_gas, dt_petro):
     plt.show()
 
 
+def load_inflation_dt():
+    dt_inflation = pd.read_csv(location.INFLATION_RATE)
+    dt_inflation['date'] = pd.to_datetime(dt_inflation['date']).dt.to_period('M')
+    inflation_rate_dt = dt_inflation.set_index('date')['2011':'2019']
+    inflation_rate_dt.sample(n=5)
+    return inflation_rate_dt
+
+
+def filter_dt_gas_to_inflation(dt_gas):
+    used_columns = [
+        'DATA',
+        'PRODUTO',
+        'ESTADO',
+        'REGIÃO',
+        'PREÇO MÉDIO DISTRIBUIÇÃO',
+        'PREÇO MÉDIO REVENDA',
+    ]
+
+    monthly_df = dt_gas.groupby(['PRODUTO', 'ESTADO', 'REGIÃO']).resample('M').mean().reset_index()
+    monthly_df['DATA'] = monthly_df['DATA FINAL'].dt.to_period('M')
+
+    gas_prices_df = monthly_df[used_columns]
+    gas_prices_df = gas_prices_df.dropna(how='any')
+
+    gas_prices_df['VARIAÇÃO DIST X REV'] = gas_prices_df['PREÇO MÉDIO REVENDA'] - gas_prices_df[
+        'PREÇO MÉDIO DISTRIBUIÇÃO']
+    gas_prices_df['VARIAÇÃO PERCENTUAL DIST X REV'] = gas_prices_df['VARIAÇÃO DIST X REV'] / gas_prices_df[
+        'PREÇO MÉDIO DISTRIBUIÇÃO'] * 100
+
+    gas_prices_df.set_index(['DATA', 'PRODUTO', 'ESTADO', 'REGIÃO'], inplace=True)
+    gas_prices_df.sample(n=5)
+    return gas_prices_df
+
+
+def prepare_gas_dt_to_inflation_compare(dt_gas):
+    dt_loaded = pd.read_csv(location.GAS, sep='\t')
+
+    is_gas = dt_loaded['PRODUTO'] == "GASOLINA COMUM"
+    dt_gas = dt_loaded[is_gas]
+
+    dt_gas['DATA FINAL'] = pd.to_datetime(dt_gas['DATA FINAL'])
+
+    dt_gas['PREÇO MÉDIO DISTRIBUIÇÃO'] = pd.to_numeric(dt_gas['PREÇO MÉDIO DISTRIBUIÇÃO'], errors='coerce')
+    dt_gas['PREÇO MÉDIO REVENDA'] = pd.to_numeric(dt_gas['PREÇO MÉDIO REVENDA'], errors='coerce')
+
+    dt_gas.set_index(['DATA FINAL'], inplace=True)
+
+    dt_gas = filter_dt_gas_to_inflation(dt_gas)
+    return dt_gas
+
+
+def prepare_inflation_rate_dt(dt_gas, dt_inflation_rate):
+    inflation_rate_gas_price_dt = dt_gas.copy()
+    inflation_rate_gas_price_dt.sample(5)
+    inflation_rate_gas_price_dt.reset_index(inplace=True)
+    inflation_rate_gas_price_dt.set_index('DATA', inplace=True)
+    inflation_rate_gas_price_dt['INFLAÇÃO ANUAL'] = dt_inflation_rate['annual_accumulation']
+    inflation_rate_gas_price_dt['INFLAÇÃO ABSOLUTA'] = dt_inflation_rate['absolute_index']
+
+    inflation_rate_gas_price_dt = inflation_rate_gas_price_dt.to_timestamp()
+
+    inflation_rate_gas_price_dt = inflation_rate_gas_price_dt[:'2019']
+    inflation_rate_gas_price_dt.sample(5)
+    return inflation_rate_gas_price_dt
+
+
+def plot_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt):
+    # TODO: Limpar datas que não estão sendo utilizadas do dt
+
+    annual_price_change_df = inflation_rate_gas_price_dt.groupby(['DATA']).mean()
+    annual_price_change_df['VARIAÇÃO'] = annual_price_change_df['PREÇO MÉDIO REVENDA'].pct_change()
+    annual_price_change_df['VARIAÇÃO 12 MESES'] = annual_price_change_df['VARIAÇÃO'].rolling(min_periods=12,
+                                                                                             window=12).sum() * 100
+    annual_price_change_df.tail()
+
+    #ploting
+    fig, ax_gas = plt.subplots()
+    annual_price_change_df.plot(y='VARIAÇÃO 12 MESES', c='#4c72b0', ax=ax_gas)
+    fig.suptitle('Variação da Inflação e Preço Acumulado - ' + 'GASOLINA COMUM')
+    ax_gas.set_xlabel('Data de pesquisa')
+    ax_gas.set_ylabel('% - Variação Acumulativa - 12 meses', color='#4c72b0')
+
+    ax_gas.get_legend().remove()
+    ax_gas.grid(True)
+
+    # plot_inflation
+    ax_inflation = ax_gas.twinx()
+
+    annual_price_change_df.plot(y='INFLAÇÃO ANUAL', ax=ax_inflation, c='#55a868')
+    ax_inflation.set_ylabel('% - Inflação Acumulada - 12 meses', color='#55a868')
+    ax_inflation.get_legend().remove()
+    ax_inflation.grid(False)
+    plt.show()
+
+
+def inflation_rate_over_gas_price(dt_gas, dt_inflation_rate):
+    dt_gas_prepared = prepare_gas_dt_to_inflation_compare(dt_gas)
+    inflation_rate_gas_price_dt = prepare_inflation_rate_dt(dt_gas_prepared, dt_inflation_rate)
+    plot_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt)
+
+
 if __name__ == '__main__':
     dt_gas = load_gas_dt()
     dt_petro = load_petroleum_dt()
+    dt_inflation_rate = load_inflation_dt()
 
-    graph_total_gas_stations_searched(dt_gas)
+    plot_total_gas_stations_searched(dt_gas)
+    inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
 
     first_insight(dt_gas, dt_petro)
