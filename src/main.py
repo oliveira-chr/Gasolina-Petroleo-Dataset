@@ -5,8 +5,8 @@ from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
                                AutoMinorLocator)
 import location
 
-def load_gas_dt():
 
+def load_gas_dt():
     dt_loaded = pd.read_csv(location.GAS, sep='\t')
 
     is_gas = dt_loaded['PRODUTO'] == "GASOLINA COMUM"
@@ -42,7 +42,6 @@ def load_gas_dt():
     return dt_gas
 
 
-
 def load_petroleum_dt():
     dt_petro = pd.read_csv(location.PETROLEUM)
     dt_petro['Data'] = pd.to_datetime(dt_petro['Data'], format='%d.%m.%Y')
@@ -67,9 +66,9 @@ def load_petroleum_dt():
 def format_number(data_value, index):
     formatter = ''
     if data_value < 1000000:
-        formatter = '{:0.1f}k'.format(data_value/1000000)
+        formatter = '{:0.1f}k'.format(data_value / 1000000)
     if data_value >= 1000000:
-        formatter = '{:0.2f}k'.format(data_value/1000000)
+        formatter = '{:0.2f}k'.format(data_value / 1000000)
     return formatter
 
 
@@ -147,4 +146,3 @@ if __name__ == '__main__':
     graph_total_gas_stations_searched(dt_gas)
 
     first_insight(dt_gas, dt_petro)
-
