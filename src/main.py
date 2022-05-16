@@ -82,7 +82,7 @@ def plot_total_gas_stations_searched(dt_gas):
     plt.show()
 
 
-def first_insight(dt_gas, dt_petro):
+def plot_first_insight(dt_gas, dt_petro):
     df_gas_d1 = dt_gas.drop(['region', 'gas_stations_searched', 'UNIDADE DE MEDIDA', 'MARGEM MÉDIA REVENDA'], axis=1)
     df_gas_d1['semestre'] = np.where(df_gas_d1['month'] < 7, 1, 2)
     # df_gas_d1 = df_gas_d1.groupby(by=['year', 'semestre']).mean()
@@ -149,6 +149,8 @@ def load_inflation_dt():
 
 
 def filter_dt_gas_to_inflation(dt_gas):
+    # TODO: Trocar linguagem das colunas para inglês
+
     used_columns = [
         'DATA',
         'PRODUTO',
@@ -206,7 +208,7 @@ def prepare_inflation_rate_dt(dt_gas, dt_inflation_rate):
     return inflation_rate_gas_price_dt
 
 
-def plot_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt):
+def graph_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt):
     # TODO: Limpar datas que não estão sendo utilizadas do dt
 
     annual_price_change_df = inflation_rate_gas_price_dt.groupby(['DATA']).mean()
@@ -215,7 +217,6 @@ def plot_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt):
                                                                                              window=12).sum() * 100
     annual_price_change_df.tail()
 
-    #ploting
     fig, ax_gas = plt.subplots()
     annual_price_change_df.plot(y='VARIAÇÃO 12 MESES', c='#4c72b0', ax=ax_gas)
     fig.suptitle('Variação da Inflação e Preço Acumulado - ' + 'GASOLINA COMUM')
@@ -235,10 +236,10 @@ def plot_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt):
     plt.show()
 
 
-def inflation_rate_over_gas_price(dt_gas, dt_inflation_rate):
+def plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate):
     dt_gas_prepared = prepare_gas_dt_to_inflation_compare(dt_gas)
     inflation_rate_gas_price_dt = prepare_inflation_rate_dt(dt_gas_prepared, dt_inflation_rate)
-    plot_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt)
+    graph_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt)
 
 
 if __name__ == '__main__':
@@ -246,7 +247,7 @@ if __name__ == '__main__':
     dt_petro = load_petroleum_dt()
     dt_inflation_rate = load_inflation_dt()
 
+    # Geração de gráficos
     plot_total_gas_stations_searched(dt_gas)
-    inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
-
-    first_insight(dt_gas, dt_petro)
+    plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
+    plot_first_insight(dt_gas, dt_petro)
