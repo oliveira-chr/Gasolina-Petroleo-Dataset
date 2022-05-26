@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+#Pycharm
+.idea/
+
 # Distribution / packaging
 .Python
 build/
@@ -76,6 +79,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+jupiter/
 
 # IPython
 profile_default/
