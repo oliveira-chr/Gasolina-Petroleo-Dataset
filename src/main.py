@@ -41,6 +41,43 @@ def load_gas_dt():
     dt_gas['year'] = pd.DatetimeIndex(dt_gas['initial_date']).year
     return dt_gas
 
+def load_gas_df_IA():
+    dt_loaded = pd.read_csv(location.GAS, sep='\t')
+
+    is_gas = dt_loaded['PRODUTO'] == "GASOLINA COMUM"
+    dt_gas = dt_loaded[is_gas]
+
+    # Retirando colunas desnecessárias.
+    dt_gas = dt_gas.drop(['PREÇO MÉDIO DISTRIBUIÇÃO',
+                          'DESVIO PADRÃO DISTRIBUIÇÃO',
+                          'UNIDADE DE MEDIDA',
+                          'MARGEM MÉDIA REVENDA',
+                          'COEF DE VARIAÇÃO DISTRIBUIÇÃO',
+                          'DATA FINAL',
+                          'PRODUTO',
+                          'ESTADO',
+                          'DESVIO PADRÃO REVENDA',
+                          'COEF DE VARIAÇÃO REVENDA'], axis=1)
+
+    # Renomeando colunas para o padrão correto.
+    dt_gas.rename(columns={
+        'NÚMERO DE POSTOS PESQUISADOS': 'gas_stations_searched',
+        'PREÇO MÉDIO REVENDA': 'avg_price',
+        'DATA INICIAL': 'initial_date',
+        'REGIÃO': 'region',
+        'MES': 'month',
+        'ANO': 'year',
+        'PREÇO MÍNIMO REVENDA': 'MINIMUM_RESALE_PRICE',
+        'PREÇO MÁXIMO REVENDA': 'MAXIMUM_RESALE_PRICE',
+        'PREÇO MÁXIMO DISTRIBUIÇÃO': 'MAXIMUM_PRICE_DISTRIBUTION',
+        'PREÇO MÍNIMO DISTRIBUIÇÃO': 'MINIMUM_PRICE_DISTRIBUTION',
+
+    }, inplace=True)
+
+    dt_gas['initial_date'] = pd.to_datetime(dt_gas['initial_date'], format='%Y-%m-%d')
+    dt_gas['month'] = pd.DatetimeIndex(dt_gas['initial_date']).month
+    dt_gas['year'] = pd.DatetimeIndex(dt_gas['initial_date']).year
+    return dt_gas
 
 def load_petroleum_dt():
     dt_petro = pd.read_csv(location.PETROLEUM)
