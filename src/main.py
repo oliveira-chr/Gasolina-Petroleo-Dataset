@@ -212,6 +212,7 @@ def graph_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt):
     # TODO: Limpar datas que não estão sendo utilizadas do dt
 
     annual_price_change_df = inflation_rate_gas_price_dt.groupby(['DATA']).mean()
+    annual_price_change_df = annual_price_change_df['2010':]
     annual_price_change_df['VARIAÇÃO'] = annual_price_change_df['PREÇO MÉDIO REVENDA'].pct_change()
     annual_price_change_df['VARIAÇÃO 12 MESES'] = annual_price_change_df['VARIAÇÃO'].rolling(min_periods=12,
                                                                                              window=12).sum() * 100
@@ -219,7 +220,7 @@ def graph_inflation_rate_gas_price_compare(inflation_rate_gas_price_dt):
 
     fig, ax_gas = plt.subplots()
     annual_price_change_df.plot(y='VARIAÇÃO 12 MESES', c='#4c72b0', ax=ax_gas)
-    fig.suptitle('Variação da Inflação e Preço Acumulado - ' + 'GASOLINA COMUM')
+    fig.suptitle('Variação da Inflação e Preço Acumulado - GASOLINA COMUM')
     ax_gas.set_xlabel('Data de pesquisa')
     ax_gas.set_ylabel('% - Variação Acumulativa - 12 meses', color='#4c72b0')
 
@@ -247,7 +248,7 @@ def plot_avg_gas_price_region(inflation_rate_gas_price_dt):
     avg_per_region_for_product_df = inflation_rate_gas_price_dt['2011':].groupby(['PRODUTO', 'REGIÃO', 'DATA']).mean()
 
     fig, ax = plt.subplots()
-    fig.suptitle('Preço por Região - ' + 'GASOLINA COMUM')
+    fig.suptitle('Preço por Região - GASOLINA COMUM')
 
     for key, grp in avg_per_region_for_product_df.groupby('REGIÃO'):
         grp_as_timeseries = grp.reset_index().set_index('DATA')
