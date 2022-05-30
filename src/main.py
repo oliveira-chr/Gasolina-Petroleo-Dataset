@@ -148,7 +148,7 @@ def plot_first_insight(dt_gas, dt_petro):
     ax = result.filter(['year', 'semestre', 'PrecoMedio', 'avg_price']) \
         .groupby(['year', 'semestre']).mean() \
         .sort_values(['year', 'semestre'], ascending=True) \
-        .plot(figsize=(11, 7), fontsize=20, grid=True, colormap='Dark2')
+        .plot(figsize=(11, 7), fontsize=15, grid=True, colormap='Dark2')
 
     ax.set_title("Relação entre o preço da gasolina e o do petróleo", fontsize=30)
     ax.set_ylabel("")
@@ -164,8 +164,8 @@ def plot_first_insight(dt_gas, dt_petro):
 
     labels = ax.get_xticklabels()
     plt.setp(labels, rotation=45, horizontalalignment='right')
-    plt.ylabel('Preço do petróleo', fontsize=30)
-    plt.xlabel("Ano/Semestre", fontsize=30)
+    plt.ylabel('Preço do petróleo - R$/l', fontsize=20)
+    plt.xlabel("Ano/Semestre", fontsize=20)
 
     plt.show()
 
