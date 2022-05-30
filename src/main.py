@@ -115,65 +115,58 @@ def plot_total_gas_stations_searched(dt_gas):
         by='gas_stations_searched',
         ascending=False)
 
-    dt_gas_stations.plot(kind='bar', figsize=(11, 7)).yaxis.set_major_formatter(format_number)
+    dt_gas_stations.plot(legend=False, kind='bar', figsize=(16, 13)).yaxis.set_major_formatter(format_number)
+
+    plt.tick_params(axis='both', labelsize=20)
+    plt.title('Número total de postos de gasolina pesquisados', fontsize=30)
+    plt.ylabel('Quantidade/mil', fontsize=20)
+    plt.xlabel('Região', fontsize=20)
     plt.show()
 
 
 def plot_first_insight(dt_gas, dt_petro):
-    df_gas_d1 = dt_gas.drop(['region', 'gas_stations_searched', 'UNIDADE DE MEDIDA', 'MARGEM MÉDIA REVENDA'], axis=1)
+    df_gas_d1 = dt_gas.drop(['region',
+                             'gas_stations_searched',
+                             'UNIDADE DE MEDIDA',
+                             'MARGEM MÉDIA REVENDA'], axis=1)
     df_gas_d1['semestre'] = np.where(df_gas_d1['month'] < 7, 1, 2)
-    # df_gas_d1 = df_gas_d1.groupby(by=['year', 'semestre']).mean()
-    # df_gas_d1 = df_gas_d1.drop('month', axis=1)
-    # df_gas_d1 = df_gas_d1.sort_values(by=['year', 'semestre'], ascending=True)
+
     df_gas_d1 = df_gas_d1.reset_index(drop=True)
     df_mask = df_gas_d1['year'] > 2010
     df_gas_d1 = df_gas_d1[df_mask]
-    # df_gas_d1.plot()
-    # plt.show()
 
     dt_petro['PrecoMedio'] = ((dt_petro['Máxima'] + dt_petro['Mínima']) / 2) / 158.98722
     dfPetro_d1 = dt_petro.drop(['Último', 'Abertura', 'Máxima', 'Mínima', 'Vol.', 'Var%'], axis=1)
     dfPetro_d1['semestre'] = np.where(dfPetro_d1['month'] < 7, 1, 2)
-    # dfPetro_d1.insert(2, "avg_price", df_gas_d1['avg_price'], allow_duplicates=False)
+
     dfPetro_d1 = dfPetro_d1.drop('month', axis=1)
 
-    # dfPetro_d1 = dfPetro_d1.groupby(by=['year', 'semestre']).mean()
-
-    # dfPetro_d1 = dfPetro_d1.sort_values(['year', 'semestre'], ascending=False)
     dfPetro_d1 = dfPetro_d1.reset_index(drop=False)
-    # dfPetro_d1.filter(['ANO','semestre','PrecoMedio'])\
-    #     .groupby(['ANO', 'semestre']).mean()\
-    #     .sort_values(['ANO', 'semestre'], ascending=True)\
-    #     .plot()
 
-    # frames = [df_gas_d1, dfPetro_d1]
-    # result = pd.concat([df_gas_d1, dfPetro_d1], axis=1, join='inner')
     result = pd.merge(df_gas_d1, dfPetro_d1, how='outer', on=['year', 'semestre'])
-    # result = result.sort_values(['year', 'semestre'], ascending=False)
-    # fig, ax = plt.subplots(figsize=(20,10))
-    # plt.suptitle("testename")
+
     ax = result.filter(['year', 'semestre', 'PrecoMedio', 'avg_price']) \
         .groupby(['year', 'semestre']).mean() \
         .sort_values(['year', 'semestre'], ascending=True) \
-        .plot(figsize=(20, 10), fontsize=20, grid=True, colormap='Dark2')
+        .plot(figsize=(11, 7), fontsize=20, grid=True, colormap='Dark2')
 
-    ax.set_title("testename", fontsize=20)
-    ax.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0.)
+    ax.set_title("Relação entre o preço da gasolina e o do petróleo", fontsize=30)
+    ax.set_ylabel("")
 
-    # ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.get_legend().remove()
+
     ax.xaxis.set_minor_locator(MultipleLocator())
     ax.xaxis.set_major_locator(MultipleLocator())
+
     ax.tick_params(which='both', width=2, color='b')
     ax.tick_params(which='major', length=4, color='g')
     ax.tick_params(which='minor', length=6, color='r')
 
     labels = ax.get_xticklabels()
     plt.setp(labels, rotation=45, horizontalalignment='right')
-    ax.set(xlim=[0, 21], xlabel='Total Revenue', ylabel='Company')
-    # ax.set_xticks([0, 2, 5, 10, 15, 20, 25])
+    plt.ylabel('Preço do petróleo', fontsize=30)
+    plt.xlabel("Ano/Semestre", fontsize=30)
 
-    # labels[1] = 0
-    # ax.set_xticklabels(labels)
     plt.show()
 
 
