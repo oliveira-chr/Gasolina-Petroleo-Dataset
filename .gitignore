@@ -78,8 +78,8 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-#.ipynb_checkpoints
-#jupiter/
+.ipynb_checkpoints
+jupiter/
 
 # IPython
 profile_default/
