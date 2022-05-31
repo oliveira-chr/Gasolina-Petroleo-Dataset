@@ -93,6 +93,7 @@ def dolar_gas_price():
     all_region_dolar_gas_price_dt['PREÇO DO DÓLAR'] = dt_br_dolar_price['brazil_usd']
     all_region_dolar_gas_price_dt.plot()
     plt.ylabel("Valor - R$/L")
+    plt.title("Relação do preço do dólar com a gasolina", fontsize=15)
     plt.show()
 
 
@@ -240,7 +241,7 @@ def plot_first_insight(dt_gas, dt_petro):
         .sort_values(['year', 'semestre'], ascending=True) \
         .plot(figsize=(11, 7), fontsize=15, grid=True, colormap='Dark2')
 
-    ax.set_title("Relação entre o preço da gasolina e o do petróleo", fontsize=30)
+    ax.set_title("Relação entre o preço da gasolina e o do petróleo", fontsize=20)
     ax.set_ylabel("")
 
     ax.get_legend().remove()
