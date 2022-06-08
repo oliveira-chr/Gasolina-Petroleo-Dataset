@@ -135,7 +135,7 @@ def plot_first_insight(dt_gas, dt_petro):
     df_mask = df_gas_d1['year'] > 2010
     df_gas_d1 = df_gas_d1[df_mask]
 
-    dt_petro['PrecoMedio'] = ((dt_petro['Máxima'] + dt_petro['Mínima']) / 2) / 158.98722
+    dt_petro['PrecoMedio'] = ((dt_petro['Máxima'] + dt_petro['Mínima']) ) / 40
     dfPetro_d1 = dt_petro.drop(['Último', 'Abertura', 'Máxima', 'Mínima', 'Vol.', 'Var%'], axis=1)
     dfPetro_d1['semestre'] = np.where(dfPetro_d1['month'] < 7, 1, 2)
 
@@ -144,7 +144,7 @@ def plot_first_insight(dt_gas, dt_petro):
     dfPetro_d1 = dfPetro_d1.reset_index(drop=False)
 
     result = pd.merge(df_gas_d1, dfPetro_d1, how='outer', on=['year', 'semestre'])
-
+    result.to_csv('result.csv')
     ax = result.filter(['year', 'semestre', 'PrecoMedio', 'avg_price']) \
         .groupby(['year', 'semestre']).mean() \
         .sort_values(['year', 'semestre'], ascending=True) \
@@ -164,7 +164,7 @@ def plot_first_insight(dt_gas, dt_petro):
 
     labels = ax.get_xticklabels()
     plt.setp(labels, rotation=45, horizontalalignment='right')
-    plt.ylabel('Preço do petróleo - R$/l', fontsize=20)
+    plt.ylabel('Preço da Gasolina - R$/l', fontsize=20)
     plt.xlabel("Ano/Semestre", fontsize=20)
 
     plt.show()
@@ -302,9 +302,9 @@ if __name__ == '__main__':
     dt_petro = load_petroleum_dt()
     dt_inflation_rate = load_inflation_dt()
 
-    # Geração de gráficos
-    plot_total_gas_stations_searched(dt_gas)
-    # TODO: Remover esse retorno e corrigir o dataset de gas para ser usado para as duas situações
-    inflation_rate_gas_price_dt = plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
-    plot_avg_gas_price_region(inflation_rate_gas_price_dt)
+    # # Geração de gráficos
+    # plot_total_gas_stations_searched(dt_gas)
+    # # TODO: Remover esse retorno e corrigir o dataset de gas para ser usado para as duas situações
+    # inflation_rate_gas_price_dt = plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
+    # plot_avg_gas_price_region(inflation_rate_gas_price_dt)
     plot_first_insight(dt_gas, dt_petro)
