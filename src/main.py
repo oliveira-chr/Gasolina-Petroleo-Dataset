@@ -6,6 +6,97 @@ from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
 import location
 
 
+def dolar_gas_price():
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    plt.rcParams['figure.figsize'] = (11, 7)
+    plt.style.use('seaborn')
+
+    dt_dolar_price = pd.read_csv('../DataSet/Foreign_Exchange_Rates.csv')
+
+    dt_br_dolar_price = dt_dolar_price[['BRAZIL - REAL/US$']]
+
+    dt_br_dolar_price['date'] = pd.to_datetime(dt_dolar_price['Time Serie']).dt.to_period('M')
+    dt_br_dolar_price = dt_br_dolar_price.set_index('date')['2011':'2019']
+
+    dt_br_dolar_price.rename(columns={'BRAZIL - REAL/US$': 'brazil_usd'}, inplace=True)
+
+    dt_br_dolar_price = dt_br_dolar_price.replace('ND', np.NaN)
+
+    dt_br_dolar_price.dropna(subset=["brazil_usd"], inplace=True)
+
+    dt_br_dolar_price["brazil_usd"] = dt_br_dolar_price.brazil_usd.astype(float)
+
+    original_gas_price_dt = pd.read_csv(r'..\\DataSet/2004-2021.tsv', sep='\t')
+    is_gas = original_gas_price_dt['PRODUTO'] == "GASOLINA COMUM"
+    df_gas = original_gas_price_dt[is_gas]
+
+    df_gas['DATA FINAL'] = pd.to_datetime(df_gas['DATA FINAL'])
+
+    df_gas['PREÇO MÉDIO REVENDA'] = pd.to_numeric(df_gas['PREÇO MÉDIO REVENDA'], errors='coerce')
+
+    df_gas.set_index(['DATA FINAL'], inplace=True)
+
+    used_columns = [
+        'DATA',
+        'REGIÃO',
+        'PREÇO MÉDIO REVENDA',
+    ]
+
+    monthly_df = df_gas.groupby(['REGIÃO']).resample('M').mean().reset_index()
+    monthly_df['DATA'] = monthly_df['DATA FINAL']  # .dt.to_period('M')
+
+    gas_prices_df = monthly_df[used_columns]
+    gas_prices_df = gas_prices_df.dropna(how='any')
+
+    gas_prices_df.set_index(['DATA'], inplace=True)
+
+    dolar_gas_price_dt = gas_prices_df.copy()
+    dolar_gas_price_dt.reset_index(inplace=True)
+    dolar_gas_price_dt.set_index('DATA', inplace=True)
+    dolar_gas_price_dt
+
+    region_centro_oeste = dolar_gas_price_dt['REGIÃO'] == "CENTRO OESTE"
+    dolar_gas_price_dt = dolar_gas_price_dt[region_centro_oeste]
+
+    dolar_gas_price_dt.reset_index(inplace=True)
+    dolar_gas_price_dt.set_index('DATA', inplace=True)
+
+    # dolar_gas_price_dt = dolar_gas_price_dt.to_timestamp()
+    dt_br_dolar_price = dt_br_dolar_price.to_timestamp()
+
+    # dolar_gas_price_dt = dolar_gas_price_dt['2011':'2019']
+
+    dt_br_dolar_price.reset_index(inplace=True)
+
+    dt_br_dolar_price.drop_duplicates(subset="date",
+                                      keep='last', inplace=True)
+
+    dt_br_dolar_price.set_index('date', inplace=True)
+    dolar_gas_price_dt['PREÇO DO DÓLAR'] = dt_br_dolar_price['brazil_usd']
+
+    all_region_dolar_gas_price_dt = gas_prices_df.copy()
+    all_region_dolar_gas_price_dt.reset_index(inplace=True)
+    all_region_dolar_gas_price_dt = all_region_dolar_gas_price_dt.drop(['REGIÃO'], axis=1)
+    all_region_dolar_gas_price_dt['month'] = pd.DatetimeIndex(all_region_dolar_gas_price_dt['DATA']).month
+    all_region_dolar_gas_price_dt['year'] = pd.DatetimeIndex(all_region_dolar_gas_price_dt['DATA']).year
+    all_region_dolar_gas_price_dt['day'] = 1
+    all_region_dolar_gas_price_dt = all_region_dolar_gas_price_dt.groupby(['year', 'month']).mean()
+    all_region_dolar_gas_price_dt = all_region_dolar_gas_price_dt.sort_values(['year', 'month'], ascending=True)
+    all_region_dolar_gas_price_dt.reset_index(inplace=True)
+    all_region_dolar_gas_price_dt['Date'] = pd.to_datetime(all_region_dolar_gas_price_dt[['month', 'day', 'year']])
+    all_region_dolar_gas_price_dt = all_region_dolar_gas_price_dt.drop(['year', 'month', 'day'], axis=1)
+    all_region_dolar_gas_price_dt = all_region_dolar_gas_price_dt.groupby(by=['Date']).mean()
+    all_region_dolar_gas_price_dt = all_region_dolar_gas_price_dt['2011':'2019']
+    all_region_dolar_gas_price_dt['PREÇO DO DÓLAR'] = dt_br_dolar_price['brazil_usd']
+    all_region_dolar_gas_price_dt.plot()
+    plt.ylabel("Valor - R$/L")
+    plt.title("Relação do preço do dólar com a gasolina", fontsize=15)
+    plt.show()
+
+
 def load_gas_dt():
     dt_loaded = pd.read_csv(location.GAS, sep='\t')
 
@@ -150,7 +241,7 @@ def plot_first_insight(dt_gas, dt_petro):
         .sort_values(['year', 'semestre'], ascending=True) \
         .plot(figsize=(11, 7), fontsize=15, grid=True, colormap='Dark2')
 
-    ax.set_title("Relação entre o preço da gasolina e o do petróleo", fontsize=30)
+    ax.set_title("Relação entre o preço da gasolina e o do petróleo", fontsize=20)
     ax.set_ylabel("")
 
     ax.get_legend().remove()
@@ -308,3 +399,4 @@ if __name__ == '__main__':
     # inflation_rate_gas_price_dt = plot_inflation_rate_over_gas_price(dt_gas, dt_inflation_rate)
     # plot_avg_gas_price_region(inflation_rate_gas_price_dt)
     plot_first_insight(dt_gas, dt_petro)
+    dolar_gas_price()
